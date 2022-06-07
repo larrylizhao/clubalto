@@ -7,5 +7,5 @@ app.use(async (ctx, next) => {
     ctx.response.body = '<h1>Hello, koa2!</h1>';
 })
 
-app.listen(3000);
-console.log('app running at port 3000');
+// no need for `app.listen()` on Deta, they run the app automatically.
+module.exports = app; // make sure to export `app` instance.
