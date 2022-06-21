@@ -20,7 +20,7 @@ router.get('/check/:date', async (ctx, next) => {
 
 router.get('/notify/:timeout', async (ctx, next) => {
     const { params: { timeout }, query: { far = false } } = ctx;
-    if(/\d{1,2}/.test(timeout) && timeout > 1 && timeout < 15) {
+    if(/\d{1,2}/.test(timeout) && timeout > 0 && timeout < 15) {
         checkAndNotify(timeout, far);
         ctx.body = {
             message: `Start checking for ${timeout} hours and will notify you if there's available slots.`
@@ -43,9 +43,15 @@ router.get('/stop', async (ctx, next) => {
 });
 
 // Book a slot on a certain date
-router.get('/book', async (ctx, next) => {
-    const { query: { date, time } } = ctx;
-    ctx.body = await book(date, time);
+router.get('/book/:date/:time', async (ctx, next) => {
+    const { params: { date, time } } = ctx;
+    if(DATEREG.test(date) && /\d{2}/.test(time)) {
+        ctx.body = await book(date, time);
+    } else {
+        ctx.body = {
+            message: 'Please input valid date and time. date in format yyyy-mm-dd, time ranges from 08 - 21'
+        };
+    }
     await next();
 });
 
