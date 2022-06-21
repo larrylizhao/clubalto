@@ -50,7 +50,7 @@ async function getAvaliableSlots(date) {
 async function checkAndNotify(timeout, far = false) {
     const weekends = getFutureWeekends(far);
     const availableSlotsMap = new Map();
-    let end = getHoursLater(timeout);
+    const end = getHoursLater(timeout);
     try {
         while(status.running && (availableSlotsMap.size === 0 || new Date() < end)) {
             await sleep(5 * 60 * 1000);
