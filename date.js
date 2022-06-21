@@ -15,7 +15,7 @@ function getFullDate(targetDate) {
     return year + '-' + month + '-' + day;
 }
 
-function getNextTwoWeekends() {
+function getFutureWeekends(far) {
     const today = new Date();
     let dayOfWeek = today.getDay(); // getDay 方法返回0 表示星期天
     dayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek;
@@ -25,10 +25,10 @@ function getNextTwoWeekends() {
     const nextSat = getFullDate(+today + (13 - dayOfWeek) * TIMESTAMP_OF_DAY);
     const nextSun = getFullDate(+today + (14 - dayOfWeek) * TIMESTAMP_OF_DAY);
     console.log('Next two weeks', [comingSat, comingSun, nextSat, nextSun]);
-    return [comingSat, comingSun, nextSat, nextSun];
+    return far ? [nextSat, nextSun] :[comingSat, comingSun, nextSat, nextSun];
 }
 
 module.exports = {
     getToday: getFullDate(),
-    getNextTwoWeekends
+    getFutureWeekends
 };
