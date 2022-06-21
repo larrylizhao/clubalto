@@ -20,9 +20,15 @@ router.get('/check/:date', async (ctx, next) => {
 
 router.get('/notify/:timeout', async (ctx, next) => {
     const { params: { timeout }, query: { far = false } } = ctx;
-    checkAndNotify(timeout, far);
-    ctx.body = {
-        message: `Start checking for ${timout} hours and will notify you if there's available slots.`
+    if(/\d{1,2}/.test(timeout) && timeout > 1 && timeout < 15) {
+        checkAndNotify(timeout, far);
+        ctx.body = {
+            message: `Start checking for ${timeout} hours and will notify you if there's available slots.`
+        }
+    } else {
+        ctx.body = {
+            message: 'timeout should be number from 1 - 14'
+        }
     }
     await next();
 });
