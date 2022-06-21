@@ -1,11 +1,16 @@
 const xml2js = require('xml2js');
 const axios = require('axios');
-const { getNextTwoWeekends } = require('date');
+const { getFutureWeekends, getHoursLater } = require('./date');
 require('dotenv').config({path: '.env.local'});
 
 const { USER_ID, MASTER_SECRET, USER_TOKEN, APP_ESTATE_ID } = process.env
+const status = {
+    running: true
+};
 
-const notification = `curl ''`;
+const notification = (body) => [
+    `https://api.day.app/DqhDEw3K2zQtXE4LSKuzS7/%E6%9C%89%E7%90%83%E5%9C%BA%E5%95%A6/${encodeURIComponent(body)}?sound=minuet`
+];
 
 async function getTimetable(date) {
     const parser = xml2js.Parser();
@@ -31,31 +36,73 @@ async function getTimetable(date) {
 
 async function getAvaliableSlots(date) {
     const timetable = await getTimetable(date);
-    return timetable
-        .filter(({BookType}) => BookType === 0 || BookType === 1)
-        .map(({SessionStartTime, SessionCloseTime, IsBooked, BookCode, SessionMemberPrice, IsPaid}) => ({
+    return timetable ? timetable
+        .filter(({BookType}) => BookType === 0)
+        .map(({SessionStartTime, SessionCloseTime, IsBooked, BookCode, SessionMemberPrice}) => ({
             SessionStartTime,
             SessionCloseTime,
             IsBooked,
             BookCode,
-            SessionMemberPrice,
-            IsPaid
-        }));
+            SessionMemberPrice
+        })) : [];
 }
 
-async function checkAndNotify() {
-    const weekends = getNextTwoWeekends();
-    const availableSlots = [];
-    for (const weekend of weekends) {
-        const availableSlot = await getAvaliableSlots(weekend);
-        availableSlots.concat()
+async function checkAndNotify(timeout, far = false) {
+    const weekends = getFutureWeekends(far);
+    const availableSlotsMap = new Map();
+    let end = getHoursLater(timeout);
+    try {
+        while(status.running && (availableSlotsMap.size === 0 || new Date() < end)) {
+            await sleep(5 * 60 * 1000);
+            for (const weekend of weekends) {
+                const availableSlot = await getAvaliableSlots(weekend);
+                if(availableSlot && availableSlot.length > 0) {
+                    availableSlotsMap.set(weekend, availableSlot);
+                }
+            }
+        }
+        if(availableSlotsMap.size > 0) {
+            const body = getNotifyBody(availableSlotsMap);
+            const [{data: first} = {}, {data: second} = {}] = [] = await notify(body);
+            return [first, second];
+        }
+        return [];
+    } catch(e) {
+        console.log(e);
+        return e;
     }
+}
+
+function sleep(time) {
+    return new Promise((resolve) => setTimeout(resolve, time));
+}
+
+function getNotifyBody(slotsMap) {
+    let body = '';
+    for(const [date, slots] of slotsMap) {
+        const slotString = slots.reduce((accu, {SessionStartTime, SessionCloseTime}) => `${accu}${SessionStartTime} - ${SessionCloseTime} || `, '');
+        body += `${date} - ${slotString} \n`;
+    }
+    return body;
+}
+
+async function notify(body) {
+    const notifications = notification(body)
+    const result = []
+    for(const noti of notifications) {
+        result.push(await axios(noti));
+    }
+    return result;
 }
 
 async function book(date, time) {
     const timetable = getTimetable(date);
     const { BookCode } = timetable.find(({SessionStartTime}) => SessionStartTime.substring(11,13) === time);
     //const data = await axios.post();
+}
+
+function stop() {
+    status.running = false;
 }
 
 module.exports = { getAvaliableSlots, checkAndNotify, book };
