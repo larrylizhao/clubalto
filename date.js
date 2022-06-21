@@ -28,7 +28,13 @@ function getFutureWeekends(far) {
     return far ? [nextSat, nextSun] :[comingSat, comingSun, nextSat, nextSun];
 }
 
+function getHoursLater(hour) {
+    const now = new Date();
+    return +now + hour * 60 * 60 * 1000;
+}
+
 module.exports = {
     getToday: getFullDate(),
-    getFutureWeekends
+    getFutureWeekends,
+    getHoursLater
 };
