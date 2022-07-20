@@ -33,7 +33,7 @@ async function getTimetable(date) {
     return ResultData;
 }
 
-async function getAvaliableSlots(date) {
+async function getAvailableSlots(date) {
     const timetable = await getTimetable(date);
     return timetable ? timetable
         .filter(({BookType}) => BookType === 0)
@@ -54,7 +54,7 @@ async function checkAndNotify(timeout, far = false) {
     try {
         while(status.running && (availableSlotsMap.size === 0 || new Date() < end)) {
             for (const weekend of weekends) {
-                const availableSlot = await getAvaliableSlots(weekend);
+                const availableSlot = await getAvailableSlots(weekend);
                 if(availableSlot && availableSlot.length > 0) {
                     availableSlotsMap.set(weekend, availableSlot);
                 }
@@ -66,11 +66,25 @@ async function checkAndNotify(timeout, far = false) {
             const [{data: first} = {}, {data: second} = {}] = [] = await notify(body);
             return [first, second];
         }
-        return [];
+        return {
+            message: 'No available slots in future weekends.'
+        };
     } catch(e) {
         console.log(e);
         return e;
     }
+}
+
+async function checkForFutureWeekends() {
+    const availableSlotsMap = new Map();
+    const weekends = getFutureWeekends();
+    for (const weekend of weekends) {
+        const availableSlot = await getAvailableSlots(weekend);
+        if(availableSlot && availableSlot.length > 0) {
+            availableSlotsMap.set(weekend, availableSlot);
+        }
+    }
+    return getNotifyBody(availableSlotsMap) || {message: 'No available slots in future weekends.'};
 }
 
 function sleep(time) {
@@ -140,4 +154,4 @@ function stop() {
     status.running = false;
 }
 
-module.exports = { getAvaliableSlots, checkAndNotify, book, stop };
+module.exports = { getAvailableSlots, checkAndNotify, checkForFutureWeekends, book, stop };

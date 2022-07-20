@@ -2,19 +2,24 @@ const Koa = require('koa');
 const Router = require('@koa/router');
 const app = new Koa();
 const router = Router();
-const { getAvaliableSlots, checkAndNotify, book, stop } = require('./alto');
+const { getAvailableSlots, checkAndNotify, checkForFutureWeekends, book, stop } = require('./alto');
 const DATEREG = /^\d{4}-\d{2}-\d{2}$/;
 
 // Check the available slots on specific date, date format: yyyy-mm-dd
 router.get('/check/:date', async (ctx, next) => {
     const { params: { date } } = ctx;
     if(DATEREG.test(date)) {
-        ctx.body = await getAvaliableSlots(date);
+        ctx.body = await getAvailableSlots(date);
     } else {
         ctx.body = {
             message: 'Date format should be yyyy-mm-dd'
         }
     }
+    await next();
+});
+
+router.get('/future-weekends', async (ctx, next) => {
+    ctx.body = await checkForFutureWeekends();
     await next();
 });
 
