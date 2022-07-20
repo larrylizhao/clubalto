@@ -93,9 +93,9 @@ function sleep(time) {
 
 function getNotifyBody(slotsMap) {
     let body = '';
-    for(const [date, slots] of slotsMap) {
+    for(const [slots] of slotsMap) {
         const slotString = slots.reduce((accu, {SessionStartTime, SessionCloseTime}) => `${accu}${SessionStartTime} - ${SessionCloseTime} || `, '');
-        body += `${date} - ${slotString} \n`;
+        body += `${slotString} \n`;
     }
     return body;
 }
