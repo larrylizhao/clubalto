@@ -18,11 +18,13 @@ router.get('/check/:date', async (ctx, next) => {
     await next();
 });
 
+// Check availability of next two weekends
 router.get('/future-weekends', async (ctx, next) => {
     ctx.body = await checkForFutureWeekends();
     await next();
 });
 
+// Check availability of next two weekends periodically and notify if there's any slots
 router.get('/notify/:timeout', async (ctx, next) => {
     const { params: { timeout }, query: { far = false } } = ctx;
     if(/\d{1,2}/.test(timeout) && timeout > 0 && timeout < 15) {
