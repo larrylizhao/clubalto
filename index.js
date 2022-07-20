@@ -4,6 +4,7 @@ const app = new Koa();
 const router = Router();
 const { getAvailableSlots, checkAndNotify, checkForFutureWeekends, book, stop } = require('./alto');
 const DATEREG = /^\d{4}-\d{2}-\d{2}$/;
+const status = require('./status').getInstance();
 
 // Check the available slots on specific date, date format: yyyy-mm-dd
 router.get('/check/:date', async (ctx, next) => {
@@ -26,15 +27,23 @@ router.get('/future-weekends', async (ctx, next) => {
 
 // Check availability of next two weekends periodically and notify if there's any slots
 router.get('/notify/:timeout', async (ctx, next) => {
-    const { params: { timeout }, query: { far = false } } = ctx;
-    if(/\d{1,2}/.test(timeout) && timeout > 0 && timeout < 15) {
-        checkAndNotify(timeout, far);
+    if(status.isRunning()) {
         ctx.body = {
-            message: `Start checking for ${timeout} hours and will notify you if there's available slots.`
+            message: 'Already checking, please stop the process before starting new checking process.',
+            status: status.getStatus()
         }
     } else {
-        ctx.body = {
-            message: 'timeout should be number from 1 - 14'
+        const { params: { timeout }, query: { far = false } } = ctx;
+        if(/\d{1,2}/.test(timeout) && timeout > 0 && timeout < 15) {
+            checkAndNotify(timeout, far);
+            ctx.body = {
+                message: `Start checking for ${timeout} hours and will notify you if there's available slots.`,
+                status: status.getStatus()
+            }
+        } else {
+            ctx.body = {
+                message: 'timeout should be number from 1 - 14'
+            }
         }
     }
     await next();
@@ -42,9 +51,10 @@ router.get('/notify/:timeout', async (ctx, next) => {
 
 // Stop the check and notify process directly
 router.get('/stop', async (ctx, next) => {
-    stop();
+    status.stop();
     ctx.body = {
-        message: `Checking stopped.`
+        message: `Checking stopped.`,
+        status: status.getStatus()
     }
     await next();
 });

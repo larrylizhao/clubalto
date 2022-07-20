@@ -1,12 +1,10 @@
 const parser = require('xml2js').Parser();
 const axios = require('axios');
 const { getFutureWeekends, getHoursLater } = require('./date');
+const status = require('./status').getInstance();
 require('dotenv').config({path: '.env.local'});
 
 const { USER_ID, MASTER_SECRET, USER_TOKEN, APP_ESTATE_ID, HOST, SOAP_ACTION_CHECK, SOAP_ACTION_BOOK, USER_AGENT } = process.env
-const status = {
-    running: true
-};
 
 const notification = (body) => [
     `https://api.day.app/DqhDEw3K2zQtXE4LSKuzS7/%E6%9C%89%E7%90%83%E5%9C%BA%E5%95%A6/${encodeURIComponent(body)}?sound=minuet`
@@ -50,15 +48,17 @@ async function checkAndNotify(timeout, far = false) {
     const weekends = getFutureWeekends(far);
     const availableSlotsMap = new Map();
     const end = getHoursLater(timeout);
-    status.running = true;
+    status.run(weekends, end);
     try {
-        while(status.running && (availableSlotsMap.size === 0 || new Date() < end)) {
+        let trying = 0;
+        while(status.isRunning() && availableSlotsMap.size === 0 && new Date() < end) {
             for (const weekend of weekends) {
                 const availableSlot = await getAvailableSlots(weekend);
                 if(availableSlot && availableSlot.length > 0) {
                     availableSlotsMap.set(weekend, availableSlot);
                 }
             }
+            status.update(availableSlotsMap)
             await sleep(5 * 60 * 1000);
         }
         if(availableSlotsMap.size > 0) {
@@ -66,11 +66,13 @@ async function checkAndNotify(timeout, far = false) {
             const [{data: first} = {}, {data: second} = {}] = [] = await notify(body);
             return [first, second];
         }
+        status.stop();
         return {
             message: 'No available slots in future weekends.'
         };
     } catch(e) {
         console.log(e);
+        status.stop();
         return e;
     }
 }
@@ -150,8 +152,4 @@ async function book(date, time) {
     }
 }
 
-function stop() {
-    status.running = false;
-}
-
-module.exports = { getAvailableSlots, checkAndNotify, checkForFutureWeekends, book, stop };
+module.exports = { getAvailableSlots, checkAndNotify, checkForFutureWeekends, book };
