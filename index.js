@@ -59,6 +59,13 @@ router.get('/stop', async (ctx, next) => {
     await next();
 });
 
+router.get('/status', async (ctx, next) => {
+    ctx.body = {
+        status: status.getStatus()
+    }
+    await next();
+});
+
 // Book a slot on a certain date
 router.get('/book/:date/:time', async (ctx, next) => {
     const { params: { date, time } } = ctx;
