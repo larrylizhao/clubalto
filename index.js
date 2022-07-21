@@ -80,7 +80,7 @@ router.get('/book/:date/:time', async (ctx, next) => {
 });
 
 router.get('/', async (ctx, next) => {
-    ctx.body = '<h1>Index</h1>';
+    ctx.body = `<h1>Started since ${new Date().toLocaleString('en-US', {timeZone: "Asia/Hong_Kong", timeStyle: 'medium', dateStyle: 'long'})}</h1>`;
     await next();
 });
 
