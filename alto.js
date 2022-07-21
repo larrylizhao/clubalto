@@ -4,10 +4,10 @@ const { getFutureWeekends, getHoursLater } = require('./date');
 const status = require('./status').getInstance();
 require('dotenv').config({path: '.env.local'});
 
-const { USER_ID, MASTER_SECRET, USER_TOKEN, APP_ESTATE_ID, HOST, SOAP_ACTION_CHECK, SOAP_ACTION_BOOK, USER_AGENT } = process.env
+const { USER_ID, MASTER_SECRET, USER_TOKEN, APP_ESTATE_ID, HOST, SOAP_ACTION_CHECK, SOAP_ACTION_BOOK, USER_AGENT, NOTIFY_KEY } = process.env
 
 const notification = (body) => [
-    `https://api.day.app/DqhDEw3K2zQtXE4LSKuzS7/%E6%9C%89%E7%90%83%E5%9C%BA%E5%95%A6/${encodeURIComponent(body)}?sound=minuet`
+    `https://api.day.app/${NOTIFY_KEY}/%E6%9C%89%E7%90%83%E5%9C%BA%E5%95%A6/${encodeURIComponent(body)}?sound=minuet`
 ];
 
 async function getTimetable(date) {
