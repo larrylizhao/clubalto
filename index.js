@@ -5,7 +5,7 @@ const router = Router();
 const { getAvailableSlots, checkAndNotify, checkForFutureWeekends, book, stop } = require('./alto');
 const DATEREG = /^\d{4}-\d{2}-\d{2}$/;
 const status = require('./status').getInstance();
-
+const startDate = new Date().toLocaleString('en-US', {timeZone: "Asia/Hong_Kong", timeStyle: 'medium', dateStyle: 'long'});
 // Check the available slots on specific date, date format: yyyy-mm-dd
 router.get('/check/:date', async (ctx, next) => {
     const { params: { date } } = ctx;
@@ -80,7 +80,7 @@ router.get('/book/:date/:time', async (ctx, next) => {
 });
 
 router.get('/', async (ctx, next) => {
-    ctx.body = `<h1>Started since ${new Date().toLocaleString('en-US', {timeZone: "Asia/Hong_Kong", timeStyle: 'medium', dateStyle: 'long'})}</h1>`;
+    ctx.body = `<h1>Started since ${startDate}</h1>`;
     await next();
 });
 
