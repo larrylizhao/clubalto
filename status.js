@@ -18,7 +18,7 @@ module.exports = class Status {
         this.running = true;
         this.timesTried = 0;
         this.weekends = `Checking time slots within ${weekends}`;
-        this.end = `It will check until ${end}`;
+        this.end = `It will check until ${new Date(end)}`;
     }
 
     update(result) {
