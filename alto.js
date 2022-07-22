@@ -95,7 +95,8 @@ function sleep(duration) {
 
 async function keepAlive(time) {
     for (let i = 0; i < time; i++) {
-        await axios.get(DETA_ENDPOINT);
+        const {data} = await axios.get(DETA_ENDPOINT);
+        console.log('data is', data);
         await sleep(60 * 1000);
     }
 }
