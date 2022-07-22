@@ -4,7 +4,7 @@ const { getFutureWeekends, getHoursLater } = require('./date');
 const status = require('./status').getInstance();
 require('dotenv').config({path: '.env.local'});
 
-const { USER_ID, MASTER_SECRET, USER_TOKEN, APP_ESTATE_ID, HOST, SOAP_ACTION_CHECK, SOAP_ACTION_BOOK, USER_AGENT, NOTIFY_KEY } = process.env
+const { USER_ID, MASTER_SECRET, USER_TOKEN, APP_ESTATE_ID, HOST, SOAP_ACTION_CHECK, SOAP_ACTION_BOOK, USER_AGENT, NOTIFY_KEY, DETA_ENDPOINT } = process.env
 
 const notification = (body) => [
     `https://api.day.app/${NOTIFY_KEY}/%E6%9C%89%E7%90%83%E5%9C%BA%E5%95%A6/${encodeURIComponent(body)}?sound=minuet`
@@ -59,7 +59,7 @@ async function checkAndNotify(timeout, far = false) {
                 }
             }
             status.update(availableSlotsMap)
-            await sleep(5 * 60 * 1000);
+            await keepAlive(5);
         }
         if(availableSlotsMap.size > 0) {
             const body = getNotifyBody(availableSlotsMap);
@@ -89,8 +89,15 @@ async function checkForFutureWeekends() {
     return getNotifyBody(availableSlotsMap) || {message: 'No available slots in future weekends.'};
 }
 
-function sleep(time) {
-    return new Promise((resolve) => setTimeout(resolve, time));
+function sleep(duration) {
+    return new Promise(resolve => setTimeout(resolve, duration));
+}
+
+async function keepAlive(time) {
+    for (let i = 0; i < time; i++) {
+        await axios.get(DETA_ENDPOINT);
+        await sleep(60 * 1000);
+    }
 }
 
 function getNotifyBody(slotsMap) {
