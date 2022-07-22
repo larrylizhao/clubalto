@@ -89,8 +89,8 @@ app.use(router.routes())
     .use(router.allowedMethods());
 
 // Only open this when debugging
-app.listen(3000, () => {
-    console.log('App running on port 3000');
-});
+// app.listen(3000, () => {
+//     console.log('App running on port 3000');
+// });
 // no need for `app.listen()` on Deta, they run the app automatically.
 module.exports = app; // make sure to export `app` instance.
